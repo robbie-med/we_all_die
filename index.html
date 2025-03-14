@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Calendar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .controls label, .controls input, .controls select, .controls button {
+            margin: 10px;
+        }
+        .calendar-container {
+            overflow-x: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #calendar {
+            display: flex;
+            flex-direction: column;
+        }
+        .year-row {
+            display: flex;
+            margin-bottom: 4px;
+        }
+        .age-label {
+            width: 30px;
+            text-align: right;
+            margin-right: 10px;
+            font-size: 12px;
+            color: #666;
+            line-height: 12px;
+        }
+        .week {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin: 1px;
+            background-color: #ddd;
+            transition: background-color 0.3s;
+        }
+        .past-week {
+            background-color: #4a6fa5;
+        }
+        .current-week {
+            background-color: #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+        .average-line, .median-line {
+            position: relative;
+            height: 2px;
+            margin-left: 40px;
+            display: none;
+        }
+        .average-line {
+            background-color: #ffcc00;
+        }
+        .median-line {
+            background-color: #ff9500;
+        }
+        .line-label {
+            position: absolute;
+            left: -40px;
+            font-size: 12px;
+            color: #666;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .screenshot-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 15px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .screenshot-btn:hover {
+            background-color: #3a5a85;
+        }
+    </style>
+</head>
+<body>
+    <h1>Life Calendar</h1>
+    
+    <div class="controls">
+        <label for="birthdate">Birth Date:</label>
+        <input type="date" id="birthdate" required>
+        
+        <label for="gender">Biological Sex:</label>
+        <select id="gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select>
+        
+        <button id="generate">Generate Calendar</button>
+    </div>
+    
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-dot" style="background-color: #4a6fa5;"></div>
+            <span>Past Weeks</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background-color: #ff6b6b;"></div>
+            <span>Current Week</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background-color: #ddd;"></div>
+            <span>Future Weeks</span>
+        </div>
+        <div class="legend-item">
+            <div style="background-color: #ffcc00; width: 20px; height: 2px;"></div>
+            <span>Average Life Expectancy</span>
+        </div>
+        <div class="legend-item">
+            <div style="background-color: #ff9500; width: 20px; height: 2px;"></div>
+            <span>Median Life Expectancy</span>
+        </div>
+    </div>
+    
+    <div class="calendar-container">
+        <div id="calendar"></div>
+        <div id="average-line" class="average-line">
+            <span class="line-label">Average</span>
+        </div>
+        <div id="median-line" class="median-line">
+            <span class="line-label">Median</span>
+        </div>
+    </div>
+    
+    <button id="screenshot" class="screenshot-btn">Save as Image</button>
+    
+    <footer>
+        <p>Life Calendar Visualization — Created on <span id="creation-date"></span></p>
+        <p>Inspired by Tim Urban's <a href="https://waitbutwhy.com/2014/05/life-weeks.html" target="_blank">Life Calendar</a></p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date in footer
+            document.getElementById('creation-date').textContent = new Date().toLocaleDateString();
+            
+            // Life expectancy data (simplified actuarial data)
+            // These are approximate values based on US life tables
+            const lifeExpectancy = {
+                male: {
+                    average: 76,
+                    median: 78
+                },
+                female: {
+                    average: 81,
+                    median: 83
+                }
+            };
+            
+            document.getElementById('generate').addEventListener('click', generateCalendar);
+            document.getElementById('screenshot').addEventListener('click', takeScreenshot);
+            
+            // Generate calendar on page load with today's date if not set
+            if (!document.getElementById('birthdate').value) {
+                // Default to 25 years ago
+                const defaultDate = new Date();
+                defaultDate.setFullYear(defaultDate.getFullYear() - 25);
+                document.getElementById('birthdate').value = defaultDate.toISOString().split('T')[0];
+            }
+            
+            function generateCalendar() {
+                const birthdateStr = document.getElementById('birthdate').value;
+                if (!birthdateStr) {
+                    alert('Please enter a birth date');
+                    return;
+                }
+                
+                const gender = document.getElementById('gender').value;
+                const birthdate = new Date(birthdateStr);
+                const today = new Date();
+                
+                // Clear previous calendar
+                const calendarEl = document.getElementById('calendar');
+                calendarEl.innerHTML = '';
+                
+                // Calculate weeks lived
+                const millisecondsLived = today - birthdate;
+                const daysLived = millisecondsLived / (1000 * 60 * 60 * 24);
+                const weeksLived = Math.floor(daysLived / 7);
+                
+                // Get average and median life expectancy based on gender
+                const avgLifeExpectancy = lifeExpectancy[gender].average;
+                const medianLifeExpectancy = lifeExpectancy[gender].median;
+                
+                // Create calendar (90 years × 52 weeks)
+                const totalYears = 90;
+                const weeksPerYear = 52;
+                
+                for (let year = 0; year < totalYears; year++) {
+                    const yearRow = document.createElement('div');
+                    yearRow.className = 'year-row';
+                    
+                    // Add age label for each row
+                    const ageLabel = document.createElement('div');
+                    ageLabel.className = 'age-label';
+                    ageLabel.textContent = year;
+                    yearRow.appendChild(ageLabel);
+                    
+                    for (let week = 0; week < weeksPerYear; week++) {
+                        const weekDiv = document.createElement('div');
+                        weekDiv.className = 'week';
+                        
+                        const weekNumber = year * weeksPerYear + week;
+                        
+                        // Mark past weeks
+                        if (weekNumber < weeksLived) {
+                            weekDiv.classList.add('past-week');
+                        }
+                        
+                        // Mark current week
+                        if (weekNumber === weeksLived) {
+                            weekDiv.classList.add('current-week');
+                        }
+                        
+                        // Add tooltip with age info
+                        const yearsOld = Math.floor(weekNumber / weeksPerYear);
+                        const weeksOld = weekNumber % weeksPerYear;
+                        weekDiv.title = `Age: ${yearsOld} years, ${weeksOld} weeks`;
+                        
+                        yearRow.appendChild(weekDiv);
+                    }
+                    
+                    calendarEl.appendChild(yearRow);
+                }
+                
+                // Add life expectancy lines
+                const avgLine = document.getElementById('average-line');
+                const medianLine = document.getElementById('median-line');
+                
+                avgLine.style.display = 'block';
+                avgLine.style.width = `${weeksPerYear * 12 + 40}px`; // 12px per week + margin
+                avgLine.style.top = `${-((totalYears - avgLifeExpectancy) * 14)}px`; // 12px per year + margin
+                
+                medianLine.style.display = 'block';
+                medianLine.style.width = `${weeksPerYear * 12 + 40}px`;
+                medianLine.style.top = `${-((totalYears - medianLifeExpectancy) * 14) + 2}px`;
+            }
+            
+            function takeScreenshot() {
+                html2canvas(document.querySelector('.calendar-container')).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'life-calendar.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            }
+            
+            // Generate default calendar
+            generateCalendar();
+        });
+    </script>
+</body>
+</html>
