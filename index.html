@@ -32,6 +32,7 @@
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
         }
         #calendar {
             display: flex;
@@ -49,11 +50,21 @@
             color: #666;
             line-height: 12px;
         }
+        .month-group {
+            display: flex;
+            margin-right: 4px;
+            border-right: 1px dotted #eee;
+        }
+        .month-group:last-child {
+            margin-right: 0;
+            border-right: none;
+        }
         .week {
             width: 10px;
             height: 10px;
-            border-radius: 50%;
             margin: 1px;
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
             background-color: #ddd;
             transition: background-color 0.3s;
         }
@@ -78,7 +89,7 @@
         }
         .line-label {
             position: absolute;
-            left: -40px;
+            right: -80px;
             font-size: 12px;
             color: #666;
         }
@@ -97,6 +108,7 @@
             display: flex;
             justify-content: center;
             margin: 20px 0;
+            flex-wrap: wrap;
         }
         .legend-item {
             display: flex;
@@ -237,6 +249,8 @@
                 // Create calendar (90 years × 52 weeks)
                 const totalYears = 90;
                 const weeksPerYear = 52;
+                // Define month groups (approximate weeks per month)
+                const monthGroups = [4, 4, 5, 4, 4, 5, 4, 5, 4, 4, 5, 4]; // 52 weeks total
                 
                 for (let year = 0; year < totalYears; year++) {
                     const yearRow = document.createElement('div');
@@ -248,28 +262,39 @@
                     ageLabel.textContent = year;
                     yearRow.appendChild(ageLabel);
                     
-                    for (let week = 0; week < weeksPerYear; week++) {
-                        const weekDiv = document.createElement('div');
-                        weekDiv.className = 'week';
+                    let weekCounter = 0;
+                    // Create month groups
+                    for (let month = 0; month < monthGroups.length; month++) {
+                        const monthGroup = document.createElement('div');
+                        monthGroup.className = 'month-group';
                         
-                        const weekNumber = year * weeksPerYear + week;
-                        
-                        // Mark past weeks
-                        if (weekNumber < weeksLived) {
-                            weekDiv.classList.add('past-week');
+                        for (let w = 0; w < monthGroups[month]; w++) {
+                            const weekDiv = document.createElement('div');
+                            weekDiv.className = 'week';
+                            
+                            const weekNumber = year * weeksPerYear + weekCounter;
+                            
+                            // Mark past weeks
+                            if (weekNumber < weeksLived) {
+                                weekDiv.classList.add('past-week');
+                            }
+                            
+                            // Mark current week
+                            if (weekNumber === weeksLived) {
+                                weekDiv.classList.add('current-week');
+                            }
+                            
+                            // Add tooltip with age info
+                            const yearsOld = Math.floor(weekNumber / weeksPerYear);
+                            const weeksOld = weekNumber % weeksPerYear;
+                            const monthName = new Date(2023, month, 1).toLocaleString('default', { month: 'short' });
+                            weekDiv.title = `Age: ${yearsOld} years, ${weeksOld} weeks (${monthName})`;
+                            
+                            monthGroup.appendChild(weekDiv);
+                            weekCounter++;
                         }
                         
-                        // Mark current week
-                        if (weekNumber === weeksLived) {
-                            weekDiv.classList.add('current-week');
-                        }
-                        
-                        // Add tooltip with age info
-                        const yearsOld = Math.floor(weekNumber / weeksPerYear);
-                        const weeksOld = weekNumber % weeksPerYear;
-                        weekDiv.title = `Age: ${yearsOld} years, ${weeksOld} weeks`;
-                        
-                        yearRow.appendChild(weekDiv);
+                        yearRow.appendChild(monthGroup);
                     }
                     
                     calendarEl.appendChild(yearRow);
@@ -281,11 +306,13 @@
                 
                 avgLine.style.display = 'block';
                 avgLine.style.width = `${weeksPerYear * 12 + 40}px`; // 12px per week + margin
-                avgLine.style.top = `${-((totalYears - avgLifeExpectancy) * 14)}px`; // 12px per year + margin
+                avgLine.style.top = `${-((totalYears - avgLifeExpectancy) * 14)}px`; // 14px per year (with margin)
+                avgLine.querySelector('.line-label').textContent = `Average (${avgLifeExpectancy} years)`;
                 
                 medianLine.style.display = 'block';
                 medianLine.style.width = `${weeksPerYear * 12 + 40}px`;
                 medianLine.style.top = `${-((totalYears - medianLifeExpectancy) * 14) + 2}px`;
+                medianLine.querySelector('.line-label').textContent = `Median (${medianLifeExpectancy} years)`;
             }
             
             function takeScreenshot() {
