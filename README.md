@@ -18,16 +18,14 @@ Welcome to **We All Die**, a web-based tool that visualizes your life in weeks�
    - Orange line = median life expectancy.
 4. **Explore**: Hover over weeks for age details, and save your calendar as an image with "Save as Image".
 
-## Using the App for Spiritual Growth
+## Using the Tool
 
 This app provides an opportunity to reflect on time as a resource entrusted to us by God (Ephesians 5:16). Consider these steps:
 - **Pray** and **Listen**: Read God's words and pray them back.
 - **Reflect**: Your time is not your own.
 - **Plan**: Think about specific, concrete ways to serve God.
 
-The calendar uses statistical life expectancies, but Scripture reminds us: *"You do not know what tomorrow will bring... If the Lord wills, we will do this or that"* (James 4:14-15). Our trust rests in God’s sovereign plan.
-
-## Important Considerations
+## Note
 
 - **Life Expectancy Data**: Based on simplified US statistics (males: average 76, median 78; females: average 81, median 83). These are estimates—God determines our actual lifespan.
 - **Calendar Span**: Displays 90 years as a practical framework, though lifespans vary. Each life has a purpose known to God (Psalm 139:16).
@@ -36,10 +34,3 @@ The calendar uses statistical life expectancies, but Scripture reminds us: *"You
 
 - Inspired by Tim Urban’s [Life Calendar](https://waitbutwhy.com/2014/05/life-weeks.html).
 - Created by robbiemed on March 14, 2025.
-
-## Getting Started
-
-1. Download or clone this repository.
-2. Open `index.html` in a web browser (e.g., Chrome, Firefox).
-3. Set your birthdate and sex
-4. Begin exploring your life’s timeline.
